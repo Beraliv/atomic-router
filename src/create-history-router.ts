@@ -12,9 +12,17 @@ import {
   scopeBind,
 } from 'effector';
 
-type RouteObject<Params extends RouteParams> = {
-  route: RouteInstance<Params>;
-  path: string;
+type GetRouteParams<S extends string> = string extends S
+    ? Record<string, string>
+    : S extends `${infer _Start}:${infer Param}/${infer Rest}`
+        ? { [K in Param | keyof GetRouteParams<Rest>]: string }
+        : S extends `${infer _Start}:${infer Param}`
+            ? { [K in Param]: string }
+            : {};
+
+type RouteObject<S extends string> = {
+  route: RouteInstance<GetRouteParams<S>>;
+  path: S;
 };
 
 type HistoryPushParams = {
@@ -36,18 +44,18 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
 );
 
 type PushParams = Omit<HistoryPushParams, 'history'>;
-type EnterParams<Params extends RouteParams> = {
-  route: RouteObject<Params>;
-  params: Params;
+type EnterParams<S extends string> = {
+  route: RouteObject<S>;
+  params: GetRouteParams<S>;
   query: RouteQuery;
 };
-type RecheckResult<Params extends RouteParams> = {
-  route: RouteObject<Params>;
-  params: Params;
+type RecheckResult<S extends string> = {
+  route: RouteObject<S>;
+  params: GetRouteParams<S>;
   query: RouteQuery;
 };
 
-export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
+export const createHistoryRouter = <S extends string>(params: { routes: RouteObject<S>[] }) => {
   const setHistory = createEvent<History>();
 
   // @ts-expect-error
@@ -89,6 +97,7 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
         pathCreator: route.path,
         actualPath: path,
       });
+      // @ts-expect-error
       (matches ? entered : left).push({ route, params, query });
     }
 
@@ -124,6 +133,7 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
         );
       }),
       filter: routeObj.route.$isOpened.map(isOpened => isOpened),
+      // @ts-expect-error
       target: routeObj.route.updated,
     });
 
@@ -135,6 +145,7 @@ export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
         );
       }),
       filter: routeObj.route.$isOpened.map(isOpened => !isOpened),
+      // @ts-expect-error
       target: routeObj.route.opened,
     });
 
