@@ -35,19 +35,19 @@ const historyPushFx = createEffect<HistoryPushParams, HistoryPushParams>(
   }
 );
 
-export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
-  type PushParams = Omit<HistoryPushParams, 'history'>;
-  type EnterParams<Params extends RouteParams> = {
-    route: RouteObject<Params>;
-    params: Params;
-    query: RouteQuery;
-  };
-  type RecheckResult<Params extends RouteParams> = {
-    route: RouteObject<Params>;
-    params: Params;
-    query: RouteQuery;
-  };
+type PushParams = Omit<HistoryPushParams, 'history'>;
+type EnterParams<Params extends RouteParams> = {
+  route: RouteObject<Params>;
+  params: Params;
+  query: RouteQuery;
+};
+type RecheckResult<Params extends RouteParams> = {
+  route: RouteObject<Params>;
+  params: Params;
+  query: RouteQuery;
+};
 
+export const createHistoryRouter = (params: { routes: RouteObject<any>[] }) => {
   const setHistory = createEvent<History>();
 
   // @ts-expect-error
